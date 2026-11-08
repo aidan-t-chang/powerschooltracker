@@ -1,0 +1,25 @@
+{
+  "manifest_version": 3,
+  "name": "PowerSchool Grade Tracker",
+  "version": "1.0.0",
+  "description": "Graphs your PowerSchool class percents over time.",
+  "permissions": ["storage"],
+  "host_permissions": ["https://*.powerschool.com/*"],
+  "action": {
+    "default_title": "Grade tracker",
+    "default_popup": "src/popup.html"
+  },
+  "background": {
+    "service_worker": "src/background.js",
+    "type": "module"
+  },
+  "content_scripts": [
+    {
+      "matches": ["https://*.powerschool.com/*"],
+      "js": ["src/content.js"],
+      "type": "module",
+      "run_at": "document_idle",
+      "all_frames": true
+    }
+  ]
+}
