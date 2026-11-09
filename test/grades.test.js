@@ -1,7 +1,9 @@
 import assert from "node:assert/strict";
 import test from "node:test";
 import { applySnapshot } from "../src/applySnapshot.js";
-import { parsePercent, parseQuickLookup } from "../src/parseGrades.js";
+import "../src/parseGrades.js";
+
+const { parsePercent, parseQuickLookup } = globalThis.gradeTrackerParse;
 
 function decode(text) {
   return text

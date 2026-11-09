@@ -1,4 +1,4 @@
-import { parseQuickLookup } from "./parseGrades.js";
+const gradeParser = globalThis.gradeTrackerParse;
 
 // Students usually land on Grades and Attendance. Many districts still serve
 // that page from /guardian/home.html; the path name is historical.
@@ -23,7 +23,7 @@ function report() {
   try {
     const table = findTable(document);
     if (!table) return;
-    const classes = parseQuickLookup(table).map(({ id, name, percent, term }) => ({
+    const classes = gradeParser.parseQuickLookup(table).map(({ id, name, percent, term }) => ({
       id,
       name,
       percent,

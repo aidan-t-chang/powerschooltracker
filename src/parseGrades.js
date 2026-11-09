@@ -1,3 +1,4 @@
+(function () {
 const META_HEADERS = new Set([
   "exp",
   "per",
@@ -21,7 +22,7 @@ const META_HEADERS = new Set([
   "attendance",
 ]);
 
-export function clean(text) {
+function clean(text) {
   return String(text ?? "")
     .replace(/\u00a0/g, " ")
     .replace(/\s+/g, " ")
@@ -47,7 +48,7 @@ function cellText(cell) {
   return cell.textContent || "";
 }
 
-export function parsePercent(text) {
+function parsePercent(text) {
   const cleaned = clean(text);
   if (!cleaned) return null;
 
@@ -218,7 +219,7 @@ function withLabels(items) {
   });
 }
 
-export function parseQuickLookup(table) {
+function parseQuickLookup(table) {
   const rows = [...(table?.rows || [])];
   if (!rows.length) return [];
 
@@ -271,3 +272,8 @@ export function parseQuickLookup(table) {
 
   return withLabels(graded).map(({ id, name, percent, term }) => ({ id, name, percent, term }));
 }
+
+// Content scripts share one classic-script scope and cannot use export.
+// The assignment is what content.js and the Node tests both read.
+globalThis.gradeTrackerParse = { clean, parsePercent, parseQuickLookup };
+})();
