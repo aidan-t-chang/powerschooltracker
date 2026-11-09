@@ -287,7 +287,7 @@ test("tables without a grades header contribute nothing", () => {
   assert.deepEqual(parseQuickLookup(tableFromHtml("<table><tr><td>Hi</td></tr></table>")), []);
 });
 
-test("applySnapshot stores a baseline and appends only when the percent changes", () => {
+test("applySnapshot stores a baseline and appends when the local day or percent changes", () => {
   const empty = { classes: {}, hiddenClassIds: ["keep"] };
   const first = applySnapshot(
     empty,
@@ -311,7 +311,10 @@ test("applySnapshot stores a baseline and appends only when the percent changes"
   );
   assert.equal(same.classes.a.name, "Art 1");
   assert.equal(same.classes.a.lastSeen, "2026-10-05T00:00:00.000Z");
-  assert.deepEqual(same.classes.a.points, first.classes.a.points);
+  assert.deepEqual(same.classes.a.points, [
+    { t: "2026-10-01T00:00:00.000Z", percent: 90, term: "Q1" },
+    { t: "2026-10-05T00:00:00.000Z", percent: 90, term: "Q1" },
+  ]);
   assert.equal(first.classes.a.points.length, 1);
 
   const changed = applySnapshot(
@@ -321,16 +324,17 @@ test("applySnapshot stores a baseline and appends only when the percent changes"
   );
   assert.deepEqual(changed.classes.a.points, [
     { t: "2026-10-01T00:00:00.000Z", percent: 90, term: "Q1" },
+    { t: "2026-10-05T00:00:00.000Z", percent: 90, term: "Q1" },
     { t: "2026-10-20T00:00:00.000Z", percent: 93, term: "Q2" },
   ]);
-  assert.equal(same.classes.a.points.length, 1);
+  assert.equal(same.classes.a.points.length, 2);
 
   const withBio = applySnapshot(
     changed,
     { classes: [{ id: "b", name: "Biology", percent: 0, term: "Q2" }] },
     "2026-10-21T00:00:00.000Z",
   );
-  assert.equal(withBio.classes.a.points.length, 2);
+  assert.equal(withBio.classes.a.points.length, 3);
   assert.equal(withBio.classes.b.points[0].percent, 0);
 
   const back = applySnapshot(
@@ -338,8 +342,8 @@ test("applySnapshot stores a baseline and appends only when the percent changes"
     { classes: [{ id: "a", name: "Art 1", percent: 90, term: "Q2" }] },
     "2026-11-01T00:00:00.000Z",
   );
-  assert.equal(back.classes.a.points.length, 3);
-  assert.equal(back.classes.a.points[2].percent, 90);
+  assert.equal(back.classes.a.points.length, 4);
+  assert.equal(back.classes.a.points[3].percent, 90);
   assert.deepEqual(back.hiddenClassIds, ["keep"]);
 
   const skipped = applySnapshot(
@@ -348,5 +352,21 @@ test("applySnapshot stores a baseline and appends only when the percent changes"
     "2026-11-02T00:00:00.000Z",
   );
   assert.equal(skipped.classes.z, undefined);
-  assert.equal(skipped.classes.a.points.length, 3);
+  assert.equal(skipped.classes.a.points.length, 4);
+});
+
+test("applySnapshot skips a second point on the same local day when the percent is unchanged", () => {
+  const morning = new Date(2026, 10, 8, 9).toISOString();
+  const afternoon = new Date(2026, 10, 8, 16).toISOString();
+  const nextMorning = new Date(2026, 10, 9, 9).toISOString();
+  const snapshot = { classes: [{ id: "a", name: "Art", percent: 90, term: "Q1" }] };
+
+  const first = applySnapshot({ classes: {}, hiddenClassIds: [] }, snapshot, morning);
+  const later = applySnapshot(first, snapshot, afternoon);
+  assert.equal(later.classes.a.points.length, 1);
+  assert.equal(later.classes.a.lastSeen, afternoon);
+
+  const tomorrow = applySnapshot(later, snapshot, nextMorning);
+  assert.equal(tomorrow.classes.a.points.length, 2);
+  assert.equal(tomorrow.classes.a.points[1].t, nextMorning);
 });

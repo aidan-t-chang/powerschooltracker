@@ -4,6 +4,13 @@ function normalizePercent(value) {
   return Math.round(percent * 100) / 100;
 }
 
+function localDate(value) {
+  const date = new Date(value);
+  const month = String(date.getMonth() + 1).padStart(2, "0");
+  const day = String(date.getDate()).padStart(2, "0");
+  return `${date.getFullYear()}-${month}-${day}`;
+}
+
 export function applySnapshot(store, snapshot, now = new Date().toISOString()) {
   const classes = { ...(store?.classes || {}) };
 
@@ -25,8 +32,7 @@ export function applySnapshot(store, snapshot, now = new Date().toISOString()) {
     const points = Array.isArray(previous.points) ? previous.points.slice() : [];
     const last = points[points.length - 1];
 
-    console.log(last?.t?.split("T")[0], now?.split("T")[0]);
-    // if no last or diff date or diff percent 
+    // if no last or diff date or diff percent
     if (!last || localDate(last.t) !== localDate(now) || Number(last.percent) !== percent) {
       points.push(point);
     }
