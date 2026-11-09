@@ -24,7 +24,13 @@ export function applySnapshot(store, snapshot, now = new Date().toISOString()) {
 
     const points = Array.isArray(previous.points) ? previous.points.slice() : [];
     const last = points[points.length - 1];
-    if (!last || Number(last.percent) !== percent) points.push(point);
+
+    console.log(last?.t?.split("T")[0], now?.split("T")[0]);
+    // if no last or diff date or diff percent 
+    if (!last || localDate(last.t) !== localDate(now) || Number(last.percent) !== percent) {
+      points.push(point);
+    }
+
     classes[item.id] = { ...previous, name: item.name, lastSeen: now, points };
   }
 
